@@ -1,0 +1,1220 @@
+COURSE INTRO
+watched 3/7
+
+- Info extraction
+- Sentiment analysis
+- Machine translation
+
+Mostly solved:
+	- spam detection
+	- POS tagging
+	- Named entity recognition
+
+Good progress:
+	- Sentiment analysis
+	- Coreference resolution (within sentences)
+	- Word sense disambiguation
+	- Parsing/sentence struction
+	- Machine transaltion
+	- Info extraction
+
+Still researching:
+	- Question answering
+	- Paraphrasing
+	- Summarization
+	- Dialog
+
+Why is it difficult?
+	- Crash blossoms -> ambiguity problem
+	"teach strikes idle kids" etc
+	- Ambiguity is pervasive throughout natural language text
+		"fed raises interest rates" -> is interest a verb?
+		-> is rates a verb?
+	- non-standard english
+	- segmentation issues ("The new york-new haven railroad")
+	- world knowledge
+	- neologism
+	- entity names e.g. "A Bug's Life"
+
+- Key theory and methods for statistical NLP
+	- viterbi, naive bayes, n-gram language modeling
+	- statistical parsing
+	- inverted index, tf-idf
+
+Skills:
+	- simple linear algebra (vectors, matrices)
+	- basic probability theory
+	- basic programming
+
+
+------------------------------------------------------
+Basic Text Processing
+REGULAR EXPRESSIONS
+watched 3/6
+
+- Formal language for specifying text strings
+- regexpal
+
+[A-Za-z] matches all alphanumeric characters
+
+Negations:
+[^A-Z]	Not a capital letter
+[^Ss]	Neither S nor s
+[^e^] Not an e, not a carrot. Later on, the carrot is just a carrot.
+groundhog|woodchuck = either of those strings
+yours|mine is either yours or mine
+a|b|c = [abc]
+[gG]roundhog|[wW]oodchuck
+colou?r = optional previous char
+oo*h = 0 or more of previous char
+o+h = 1 or more of previous char oh! ooh! ooh!
+. = everything
+
+[quiz]
+
+$ for lines
+
+False positives (increase accuraccy to fix)
+False negatives (increase coverage to fix)
+
+SUMMARY
+- regular expressions play a surprisingly large role
+- For many hard tasks, we use machine learning classifiers
+
+
+
+------------------------------------------------------
+Basic Text Processing
+REGULAR EXPRESSIONS IN PRACTICAL NLP
+watched 3/7
+
+- Regexes used for surprising amount of info retrieval stuff
+- Used in parsers/lexers
+- phone numbers regex:
+	- {3,5} <-- between three and five of the previous pattern
+
+- Hard thing with regex is gettin
+
+
+[quiz] - got it wrong, parens need escape chars
+
+------------------------------------------------------
+Basic Text Processing
+WORD TOKENIZATION
+
+Two words are the same lemma if they're basically the same. cat and cats
+
+wordform = the full form of the word (cat and cats are different)
+
+type = element of vocabulary, token = instance of the type in the text.
+
+n = number of tokens
+v = vocab, set of types
+
+Church and Gale postulated relationship between the two: |V| > O(n^(1/2))
+
+unix tools:
+less
+tr -sc translate characters matching one expression into another char
+sort
+uniq uniqify a list of stuff and make a count
+
+
+Sorting the words in a corpus of text by frequency...different capitalizations get different words. Fix that with another call to tr. Now we get words of individual characters. That's because of apostrophes. 
+
+Finland's capital -> Finlands???
+What're -> what are?
+
+Even more complicated in French. German noun compounds aren't even segmented. Chinese and japanese don't ever have spaces. Multiple alphabets.
+
+In chinese, it's called word segmentation (not tokenization). Max match is baseline algorithm (find the biggest matches). Not very good for English. But Chinese has consistent word length, so it works astonishingly well.
+
+
+
+
+
+------------------------------------------------------
+Basic Text Processing
+WORD TOKENIZATION AND STEMMING
+watched 3/10
+
+Need to normalize terms
+U.S.A. -> USA
+
+Case folding: reduce everything to lower case
+Fed vs Fed (some exceptions)
+
+
+Lemmatization: reduce inflections to base form
+
+Stemming: chop off suffixes
+
+
+Porter's Algorithm:
+step 1a:
+sses -> ss
+ies -> i 
+ss -> ss (caress -> caress)
+s -> ø	(cats -> cat)
+
+step 1b:
+(*v*)ing -> ø
+(*v*)ed -> ø
+
+v = vowel. sing should stay sing, but walking should be walk
+
+Applying this with unix tools
+
+Turkish requires very complex morpheme segmentation
+
+
+------------------------------------------------------
+Basic Text Processing
+SENTENCE SEGMENTATION
+3/10/12
+
+- !? are unambiguous
+- Periods are ambiguous. Could be an abbreviation, could be a number/decimal.
+- Binary classifier for deciding what a period is for.
+- Decision tree.
+
+- Could do probability calculation based on corpuses where we already know where the end of sentences are. Is this word likely to be the end/beginning of a sentence?
+
+- Can look at whether word before period is capitalized, lowercase, number, etc.
+
+- Hand-building of decision trees is really hard.
+
+
+------------------------------------------------------
+Edit Distance
+DEFINING MINIMUM EDIT DISTANCE
+3/10/12
+
+How similar are two strings?
+
+Definition:
+- Minimum number of operations (insert, delete, subsitue) needed to transform one string into the other.
+
+INTE NTION
+||||||||||
+*EXECUTION
+dss is 
+
+Lebenshtein distance
+Insersions and deletions cost 1, substitutions cost 2
+
+did ANTS->GNU, levenshtein distance of 5.
+
+You have to make the words align as best they can first, then figure out if it's a subs or deletion.
+
+In computational biology, you have to do this.
+
+Can use it to evaluate machine translation or speech recognition. Were words inserted, deleted, subsituted?
+
+In named entity extraction, can look at edit distance (on word level) to see if entities are the same.
+
+How do we actually find it?
+- Searching for a path.
+- Can't navigate naively
+- Lots of distinct paths wind up at the same state.
+
+Minimum edit distance defined as:
+- For two strings, X of length n, Y of length m
+
+- D(i,j) = edit distance between X[1..i] and Y[1..j]
+- Distance between ENTIRE two strings is D(m,n).
+
+
+------------------------------------------------------
+Edit Distance
+COMPUTING MINIMUM EDIT DISTANCE
+3/10/12
+
+Dynamic programming
+D(n,m) tabular computation
+Combine solutions to subproblems
+
+- We compute small i,j
+- Compute larger D(i,j) from previously computed values
+
+D(i,0) = i
+D(0,j) = j
+
+for each i = 1..m
+	for each j = 1..n
+		D(i,j) = min of:
+					D(i-1,j) + 1
+					D(i, j-1) + 1
+					D(i-1, j-1) + 
+						2 (if X(i) ≠ Y(j))
+						0 if X(i) = Y(j)
+
+
+D(N,M) is distance
+
+(better written with X -> S[1] and Y -> S[2])
+
+We start a table.
+Example: INTENTION and EXECUTION
+- Fill in the 0
+- Fill in just adding each letter to the empty string. Will always be the length, because we're just inserting
+- Go outwards, applying the formula
+
+We're just trying every possibility, but eliminating the redundant ones.
+
+
+
+
+------------------------------------------------------
+Edit Distance
+BACKTRACK FOR COMPUTING ALIGNMENTS
+3/10/12
+
+Edit distance isn't sufficient. We also need to align the characters.
+
+We do this by keepiung a "backtrace"
+
+Annotate each cell with where it could have come from (how many branches of the calculation would result in the same number.)
+
+Performance of algo:
+Time O(nm)
+Space O(nm)
+Backtrace is O(n+m) (how many cells would we have to touch?)
+
+
+------------------------------------------------------
+Edit Distance
+WEIGHTED MINIMUM EDIT DISTANCE
+3/10/12
+
+- Why would we add weights?
+	- Spell check: some letters are more likely to be mistyped. e is likely to be confused with a, etc. Unlikely to confuse vowels with consonents. Also can find typos based on keys next to each other.
+	- Bio: some kinds of dels/ins are more likely than other.
+
+- Some edits are more likely than others.
+
+We have to modify the algo.
+Instead of 1 for insertion, it's ins[y(j)], etc. Separate little lookup tables.
+
+Problem I got wrong:
+Consider a weighted Levenshtein distance in which the cost of substitutions are doubled if the letter being replaced is alphabetically after the letter with which it is replaced. Let insertions and deletions keep a cost of 1. How many word pairs will have increased distances?
+
+Answer is:
+Interestingly this will have no effect, because it is always possible to carry out a substitution through a deletion followed by an insertion. As long as these operations keep a cost of 1, then a substitution can always be made with cost 2.
+
+subs = del followed by insertion, which would give us 2 anyway. So getting more than 2 for subsitution doesn't hurt us, because the alternative is del and subs (because of the 'min' part of the formula)
+
+
+
+
+------------------------------------------------------
+Edit Distance
+MINIMUM EDIT DISTANCE IN COMPUTATIONAL BIOLOGY
+
+- Comparing stuff from different species
+
+NLP uses "distance" (trying to find min)
+Bio uses "similarity" (trying to find max)
+
+Needleman-Wunsch Algorithm is the analog to Levenshtein distance. They subtract deletions, and it's the MAX of these things:
+
+D(i,0) = -i * d
+D(0,j) = -j * d
+D(i-1,j-1) + s[x(i),y(j)]
+D(N,M) is distance
+D(i,j) = max of:
+	D(i-1,j) - d
+	D(i,j-1) - d
+	D(i-1,j-1) + s[x(i),y(j)]
+
+
+Example problem:
+d=1
+s(x(i), y(j)) = 0 if x(i)=y(j), and -2 otherwise.
+
+Similarity between ATC and AATC...
+Got it right! -1
+
+Overlap detection variant....changes algo.
+
+Finding max. local alignment. Find two substrings whose similarity is maximum.
+
+Smith-Waterman algorithm
+Modification of Needleman-Wunsch
+F(0,j) = 0
+F(i, 0) = 0
+
+F(i,j) = max:
+	0 
+	F(i-1, j) - d
+	F(i, j-1) - d
+	F(i-1, j-1) + s(x[i],y[j])
+
+Terminate:
+	1. if we want the best local alignment, we trace back from the place that's the max in the arra.
+
+	2. if we want *all* local alignments, it's harder. There might be some that overlap.
+
+
+
+------------------------------------------------------
+WEEK 2
+LANGUAGE MODELING
+Introduction to N-Grams
+Watched 3/23, 12:38
+
+Today's goal: assign a probability to a sentence
+Used in machine translation and spelling correction
+
+P(W) = P(w[1], w[2], w[n])
+
+Related task: probability of an upcoming word
+
+A model that computes either if these is called a language model.
+
+Let's try the chain rule
+Generalized form:
+P(x[1], x[2], x[3] ... x[n]) = P(x[1]) * P(x[2]|x[1]) * P(x[3] | x[1], x[2])
+
+P(water|its) means "probability of 'water' given 'its'"
+P("its water is so transparent")
+
+How to estimate?
+- Could we count and divide? Nope. There's too many sentences.
+- Instead we apply a simplifying assumption called the Markov Assumption. P(the | its water is so transparent that) = P(the | that)
+or perhaps P(the | its water is so transparent that) = P(the | transparent that)
+
+The unigram model (simple markov model)
+P(w[1]w[2]...w[n]) = i∏ P(w[i])  
+Looks like it just multiplies the probabilities of the words together.
+- If we auto-generate some from a unigram model, it looks like word 
+salad
+
+Bigram model
+P(w[i] | w[1]w[2]...w[i-1]) = P(w[i] | w[i-1])
+Probability of a word based on the previous word
+
+Trigram, 4-grams, 5-gram modeling. But this is an insufficient model of language because language has long-distance dependencies. We can often get away with n-gram models though.
+
+
+
+------------------------------------------------------
+WEEK 2
+LANGUAGE MODELING
+Estimating N-gram Proabilities
+Watched 3/23, 12:49pm
+
+Estimating bigram probabilities
+
+The maximum likelihood estimate 
+P(w[i] | w[i-1]) = count(w[i-1], w[i]) / count(w[i-1])
+
+count(a, b) means "how many times did they occur together"
+
+<s>I am Sam</s>
+<s>Sam I am</s>
+<s>I do not like green eggs and ham</s>
+ P(I|<s>) = 2/3
+ P(Sam|<s>) = 1/3
+ P(do|I) = 1/3
+ P(am|I) = 2/3 ...etc
+
+- Berkeley restaurant corpus. Made a big bigram count table.
+To turn the counts into a probabilities, we need to normalize by a unigram count. 
+
+What kinds of knowledge are expressed by bigram probabilities?
+P(english | want) is less than P(chinese | want) - that's a fact about the world. People want chinese food.
+
+P(to|want) = .66 = gramatical fact. Needs infinitive.
+P(want|spend) = 0
+
+In practice, we do everything in log space. Log probabilities. 
+Why?
+- Avoid underflow. If you have a long sentence, you're multiplying tons of little probabilities. You get too small an number to matter.
+- Adding is faster than multiplying
+
+So we do:
+p1 x p2 x p3 = log(p1) + log(p2) + log(p3)
+
+Google N-grams release is a great corpus. Google book ngrams as well
+
+
+------------------------------------------------------
+WEEK 2
+LANGUAGE MODELING
+Evaluation and Perplexity
+Watched 3/23, started 1:10pm
+
+- Does our language model prefer good sentences to bad ones?
+- We train parameters of our model on a training set, and we test the model's performance on data we haven't seen. A test set is unseen dataset that is different than our training set. An evaluation metric tells you how you do.
+
+Best evaluation for comparing models A and B. Extrinsic evaluation/in vivo:
+	- Put each model in a task. Spelling corrector, speech recognizer, machine translation system.
+	- Run the task, get an accuracy
+	- The problem is it's time consuming; can take days or weeks. 
+
+Instead, we use an intrinsic evaluation: perplexity.
+Perplexity is a bad approximation unless the test data looks just like the training data. Only useful in pilot experiments as long as we also use extrinsic.
+
+The Shannon Game: how well can we predict the next word?
+I always order pizza with cheese and _____
+
+Unigrams are bad at this game. 
+
+Perplexity is the probability of the test set, normalized by the number of words.
+
+PP(w) = P(w1w2...wn)-(1/n)
+= n√(1/P(w1w2...wn))
+Formula gets more complicated once you try chain rule and bigram probabilities.
+
+Minimizing perplexity is the same as maximizing probability.
+Perplexity is related to the average branching factor. If I'm recognizing the 10 digits, the perplexity is 10. If I have to recognize 30k names at MS, the perplexity is 30,000.
+If a system has to recognize 4 different things like "operator", "sales", "technical support", but then also 30k names (1 in 120k each), the perplexity is actually 53.
+
+Weighted equivilant branching factor.
+
+Suppose a sentence consisting of random digits. What is the perplexity of this sentence according to a model that assigns 1/10 to each digit?
+
+The lower you get, the better you are at predicting.
+
+------------------------------------------------------
+WEEK 2
+LANGUAGE MODELING
+Generalization and Zeros
+Watched 3/23, started 2:28pm
+
+Shannon Visualization Method
+- Choose a random bigram according to its probability
+- Choose another that starts with the word that the first ends with.
+- And so on until we get to the end of a sentence.
+- String em together. 
+
+Comparing Shakespeare to the WSJ.
+- 4-grams with Shakespeare actually are shakespeare.
+- But the WSJ is nonsense that way.
+
+What's the lesson:
+- N-grams only work well for word prediction if the test corpus looks like the training corpus. In real life, it often doesn't.
+
+So we need a better model that can generalize.
+
+One kind of generalization: zeros....words that never happen.
+
+We can't compute perplexity because it would be adivide by zero. 
+
+------------------------------------------------------
+WEEK 2
+LANGUAGE MODELING
+Smoothing: Add-One
+Watched 3/23, 2:34pm
+
+Steal a little probability from some things so you can add to others. 
+
+Just add one to all the counts.
+
+Maximum likeleehood estimate
+- of some parameter of a model M from a training set T
+- Maximizes the liklihood of the training set T given the model M
+
+If bagel occurrs 400 times in a corpus of 1M words, what's the probability that a random word from some other text will be bagel? Maximum is the same. 
+
+Any kind of smoothing gives you a non-maximum so you can generalize better.
+
+Maximum liklihood has the LOWEST perplexity.
+
+Going back to Berkeley restaurant corpus, computing bigram probabilities. Made massive changes.
+
+Add-one is a very blunt instrument, not really used for N-grams. 
+
+But it *is* used for text classification where there aren't a lot of zeroes.
+
+------------------------------------------------------
+WEEK 2
+LANGUAGE MODELING
+Interpolation
+watched 3/24, 3:48PM
+
+Backoff = if you don't have a large count for a big n-gram, we'll back off to a smaller one. Mix unigram, bigram, trigram.
+
+Interpolation = mix them all together.
+
+Two kinds of interpolation:
+- Simple linear
+(p hat)
+P(w[n] | w[n-1] w[n-2) = λ[1] * P(w[n] | w[n-1] * w[n-2])
++ λ[2] * P(w[n] | w[n-1])
++ λ[3] * P(w[n])
+
+- Lambdas conditional on context (more complicated mix)
+
+How to set the lambdas?
+- Use a held-out corpus. Take some of our training data and leave some out. Find the set of probabilities that gives us the best for the held out data.
+
+- Unknown words: open versus closed vocabulary tasks
+
+Closed vocab = where we know all the words in advance
+OOV words = out of vocabulary words
+Make a special token called <UNK> for words outside your fixed lexicon.  
+
+We might wanna remove all singleton n-grams. Or entropy-based pruning. 
+
+Can do other things for efficiency, good data structures, etc. Store words as indexes not strings (or huffman coding).
+
+Smoothing for web-scale n-grams.
+"Stupid backoff", no discounting, just use relative frequencies. Doesn't produce probabilities.
+
+
+Summary:
+Add 1 : OK for text cat, not for modeling
+Extended Interpolated Kneser-Ney
+Very large: Stupid backoff
+
+Advanced language modeling:
+- Discriminative models: choose n-gram weights to improve some task, not to fit the training set (machine translation, whatever)
+- Parsing-based models
+- Caching models (recently used words are more likely to appear). Bad for speech recognition.
+
+
+
+------------------------------------------------------
+WEEK 2
+LANGUAGE MODELING
+Good-Turing Smoothing
+Watched 3/24
+
+- Unigram prior extension to add K. Instead of 1/v to each count, add something about the probability. It's a variant of interpolation.
+
+Advanced smoothing algorithms
+- Good-Turing
+- Kneser-Ney
+- Witten-Bell
+
+Use the count of things we've seen once to help estimate the count of things we've never seen.
+
+N[c] = how many things occurred with frequency c?
+
+Sam I am I am Sam I do not eat
+I = 3, sam = 2, am = 2, do = 1, not = 1, eat = 1
+
+N[1] = {do, not, eat} = 3
+N[2] = {sam, am} = 2
+N[3] = {I}
+
+10 carp, 3 perch, 2 whitefish, 1 trout, 1 salmon, 1 eel = 18 fish
+How likely is it that the next species is trout? 1/18 because we saw 18 fish and one was trout.
+
+N[1] = 3 (trout, salmon, eel)
+N[2] = 1 (whitefish)
+
+How likely is it that the next species is new? (e.g. catfish, bass). 3/18 because N[1] = 3
+
+Assuming so, how likely is it that the next species is trout?
+
+P*[GT] (things with 0 freq) = N[1]/N 
+
+c* = (c+1)N[c+1]
+	 -----------
+	 	  N[c]
+
+
+Unseen (bass or catfish)
+c = 0 
+MLE p = 0/18
+P*GT(unseen) = N[1]/N = 3/18
+
+Seen once
+c = 1 
+MLE p = 1/18
+C*(trout) = 2 * N2/N1
+2 * 1/3 = 2/3
+
+P*[GT](trout) = (2/3 / 18) = 1/27
+
+We discounted it from 1/18 to 2/3/18 to account for the probability of seeing something new.
+
+What fraction of held-out words are unseen in training?
+
+Problem:
+	For small k N[k] > N[k+1]
+	For large k, too jumpy, zeroes/gaps wreck your estimates.
+
+	The fix: Simple Good-Turing: replace empirical N[k] with best-fit power law once count counts get unreliable.
+
+------------------------------------------------------
+WEEK 2
+LANGUAGE MODELING
+Kneser-Ney Smoothing
+watched 3/24, 11:02pm
+
+Good-Turing
+c* = the discounted counts from good-turing
+In practice, it really produces a "fixed small discount"
+When we do that, we call it an absolute discount interpolation.
+
+Kneser Ney intuition Use a better estimate for probabilities of lower-order unigrams, but do fixed discounting otherwise.
+
+P[continuation](w) = how likely is w to appear as a novel continuation
+- For each word, count the number of bigram types it completes.
+- Each bigram type is a novel continuation the first time we see it.
+
+A frequent word that only appears in one context will have a low continuation probability( P[continuation])
+
+
+------------------------------------------------------
+WEEK 2
+SPELLING CORRECTION
+The Spelling Correction Task
+watched 3/24 11:17pm
+
+- Spelling error detection
+- Spelling error correction
+	- autocorrect, suggest a correction, suggestion lists
+
+Two types of errors:
+	- Non-word errors: what the user typed isn't an english word
+	- Real-word errors:
+		- typographical errors (three -> there)
+		- cognitive errors (piece -> peace etc)
+
+	- 26% mispelling rate on web queries, 1-2% retyping normally. More with no backspace or on phone.
+
+	
+Non-word spelling error correction
+	- Generate candidates
+	- Shortered weighted edit distance or highest noisy channel probability (will get into)
+
+- For real word spelling errors, we look at words with similar pronounciations or similar spelling. Include the word itself in the candidate set because it might be correct.
+
+
+
+------------------------------------------------------
+WEEK 2
+SPELLING CORRECTION
+The Noisy Channel Model of Spelling
+
+Word goes through some "noisy channel" before it gets down.
+
+Example:
+acress
+Candidate generation: 
+- small edit distance (similar spelling)
+- small edit distance of pronounciation to error (similar pronounciation)
+
+Edits are insertions, deletions, substituions, and transposition
+
+Damerau-Levenschtein allows for transposition.
+
+
+80% of spelling errors are within edit distance 1
+Almost all errors within edit distance 2
+
+Also allow insertion of space or hyphen
+
+How to rank the canddidates after we've generated them?
+
+Channel model of probability
+Kernighan, Church, Gale 1990
+Mispelled word x = x[1], x[2], x[3]..x[m]
+Correct word w = w[1], w[2], w[3]...w[n]
+
+P(x|w) = probability of the edit
+x given w.
+
+We make a "confusion matrix". For a pair of letters x,y, how often are they typed as one another?
+
+del[x,y] = xy typed as x
+ins[x,y] = x typed as yx
+sub[x,y] = x typed as y
+trans[x,y] = xy typed as yx
+
+Substitution matrix from Kernighan. Vowels mistyped, m and n confused, etc.
+
+Peter Norvig has a list on his site.
+
+Generate P(x|w) = sum of all these other probabilities. 
+
+P(error|what you meant)
+
+Multiply channel model with language model together to get a good idea on how to rank them.
+
+Use bigram model instead of unigram model for better results. Check the bigram of the word in question and the word before, as well as the bigram of the word and the one after.
+
+
+
+------------------------------------------------------
+WEEK 2
+SPELLING CORRECTION
+Real-Word Spelling Correction
+watched 3/25 12:00am
+
+25-40% of spelling errors are real words
+
+Given a sentence w[1]...w[n]
+Generate candidates for each word in the sentence, assuming its mispelled (including the original word in the set).
+
+Choose the sequence W that maximizes P(w)
+
+Simplification: assume only one error per sentence.
+
+Multiply language model by noisy channel model
+
+------------------------------------------------------
+WEEK 2
+SPELLING CORRECTION
+State of the Art Systems
+
+HCI issues
+	- If we're very confident, we autocorrect
+	- If we're less confident, give a single best correction
+	- If we're even less confident, give a list.
+
+We don't actually multiply the language model and the noisy channel model, we weight them. Raise the lang model by a power of lambda. 
+
+Convert misspelling to metaphone pronounciation. Then find words whose pornounciation is 1-2 edit distance from the misspelling's. Then score the result list.
+
+Improvements to the channel model:
+- Richer edits
+- Incorporate pronounciation into channel
+
+------------------------------------------------------
+WEEK 3 
+TEXT CLASSIFICATION
+What is text classification?
+
+- Determine spam or not spam
+- authorship
+- sentiment
+- subject
+
+
+Definition
+
+Input: a document d
+a fixed set of classes C
+a training set of m hand-labeled documents
+
+Types of classifiers
+- Naive bayes
+- Logistic regression
+- support-vector machines
+- k-nearest neighbors
+
+
+------------------------------------------------------
+WEEK 3 
+TEXT CLASSIFICATION
+Naive Bayes
+
+The bag of words representation. Just words and counts
+
+gamma = classifier
+
+
+
+
+------------------------------------------------------
+WEEK 3 
+TEXT CLASSIFICATION
+Formalizing the Naive Bayes Classifier
+
+document d and class c
+P(c|d) = P(d|c)P(c)
+        -----------
+        	P(d)
+
+Bayes rule (need to read up on)
+
+c[MAP] = argmax(c in C) P(c|d) 
+		 class whose probability given the document is
+		 the greatest
+
+ = argmax P(d|c)P(c) / P(d)
+
+ = argmax P(d|c)P(c)
+
+Most likely class maximizes two probabilities -- document given class and the class itself.
+
+= argmax P(x[1], x[2]) ... document represented as collection of features
+
+Probability of a class = how often does this class occur?
+
+Simplifying assumptions:
+- Bag of words (word position doesn't matter)
+- Conditional independences = assume the feature probabilities P(x[i]|c[j]) are independent given the class c.
+
+Both of these are absolutely wrong.
+
+P(x[1]...x[n]|c) = P(x[1]|c) * P(x[2]|c) .... * P(x[n]|c)
+
+C[NB] formula....
+
+Walk through the document, look at each word in each position. Compute probabilities for every single class. 
+
+
+------------------------------------------------------
+WEEK 3 
+TEXT CLASSIFICATION
+Naive Bayes - Learning
+
+- First attempt: use maximum likelihood estimates
+	- concat all the documents that have topic j together. use frequency of a given word in that document
+
+	Zero probabilities cannot be conditioned away, no matter the other evidence. If one of the likilhood terms we multiply together is 0, the whole thing is zero.
+
+	Add one smoothing to fix this.
+
+
+- From the training corpus, extract vocabulary.
+- Calculate P(c[j]) terms
+	- make megadocument
+	- count number of occurence in vocabulary.
+
+	- Add "unknown word" w[u]
+		- likelihood = 1 / (num of tokens in class c) + v + 1
+
+
+------------------------------------------------------
+WEEK 3 
+TEXT CLASSIFICATION
+Naive Bayes Relationship to Language Modeling
+
+Generative model for multinomial naive bayes
+
+Each class in a naive bayes classifier is a unigram language model. 
+
+------------------------------------------------------
+WEEK 3 
+TEXT CLASSIFICATION
+Multinomial Naive Bayes - A worked example
+
+Example: distinguishing between chinese and japanese news articles
+
+Naive bayes in spam filtering:
+	- SpamAssassin
+
+Naive bayes is not so naive. Very fast, low storage requrements.
+
+Very good in domains with many equally important features.
+
+Optimal if the independence assumptions hold, then bayes is the optimal classifier for the problem. Good dependable baseline for test classification, but we will see others.
+
+------------------------------------------------------
+WEEK 3 
+TEXT CLASSIFICATION
+Precision Recall and the F measure
+watched 4/2
+
+2 by 2 contingency table
+selected	true pos   false pos
+not sel     false neg  true neg
+
+accuracy = tp + tn / tp + fp + tn + fn
+
+
+precision = % of selected items that are correct
+
+tp / tp + fp
+
+recall = % of correct items that are selected
+
+tp / tp + fn
+
+Example of shoe brand classifier that always returns false has 0 recall.
+
+There is a tradeoff/balance between recall and precision. The more you try to boost recall, the more your precision starts to drop.
+
+Sometimes you're fine with a bunch of false positives -- depends on the application.
+
+The way to combine these measures is the F measure. A weighted harmonic mean between precision and recall.
+
+The harmonic mean is a very conservative average. Reciprocal of two quantities, add them, take the reciprocal of that. "fairly close to the minimum of the two numbers"
+
+F = 1 / (a(1/p) + (1-a)(1/r))
+
+alpha = which you're weighting
+
+(B^2 + 1)PR / B^2P + R
+is how it's written in books
+B = what you're weighting
+
+Most commonly used measure is the balanced F measure, F1 measure, where beta = 1 (or alpha = 1/2)
+
+Simplified:
+2PR/(P+R) for balanced f measure
+
+------------------------------------------------------
+WEEK 3 
+TEXT CLASSIFICATION
+Text Classification - Evaluation
+
+Example: classic reuters data set. Most used data set.
+
+Confusion matrix. Computing precision, accuracy, recall.
+
+Micro vs macro averaging. If we have more than one class, how do we combine multiple performance measures into one quantity?
+micro = collect decisions for all classes, compute contingency table, evaluate
+macro = compute for each class, then average
+
+Micro average is dominated by the score on the common classes of documents, in macro each class is equal.
+
+Use a dev test set so we don't overfit to the test set. We can cross validate over multiple splits to avoid sampling errors. 
+
+
+
+------------------------------------------------------
+WEEK 3 
+TEXT CLASSIFICATION
+Practical Issues in Text Classification
+
+No training data? Use manually written rules.
+	- need careful crafting, very time consuming
+
+Very little data? Use naive bayes
+	- High bias = doesn't tend to overfit too badly
+	- Need to get more labeled data. Can find clever ways to get humans to label data for you.
+	- Semi-supervised training methods, ootstrapping
+
+Reasonable amount of data?
+	- Regularized logistic regression
+	- Support vector machine
+	- Decision trees
+
+Huge amount of data
+	- Can achieve high accuracy.
+	- SVMs and kNN cn be too slow. Logistic regression can be better.
+	- But naive bayes can come back into its own again.
+
+Accuracy as a function of data size. If you have enough data, it might not matter.
+
+Real-world systems combine:
+- Automatic classification
+- Manual review of difficult cases
+
+Underflow prevision 
+	- Multiplying lots of probabilities can result in floating-point underflow. 
+	- So we use logs. log(xy) = log(x) + log(y)
+	- Class with highest un-normalied log probability score is still most probable.
+	- Model is now just max of sum of weights.
+
+How to tweak performance
+	- Domain-specific features and weights are very important in real peformance
+	- Might need to collapse terms. 
+
+	- Upweighting
+		- Counting a word as if it occurred twice. Title words, first sentence in each paragraph, sentences that have words that occurred in the title.
+
+======================================================
+------------------------------------------------------
+WEEK 3 
+SENTIMENT ANALYSIS
+What is sentiment analysis?
+
+Movie reviews, product reviews.
+
+Twitter sentiment predicting the stock market
+"calmness" predicts the DJIA three days later. At least one hedge fund uses this algorithm.
+
+Twitter sentiment used to predict peoples sentiment toward brands. 
+
+Other names: opinion extraction, opinion mining, sentiment mining, subjectivity analysis
+
+Typology of affective states:
+	- emotion
+	- mood
+	- interpersonal stance
+	- attitudes
+	- personality traits
+
+Sentiment is a part of attitude. 
+
+Sentiment has:
+1. holder of attitude
+2. target/aspect of attitude
+3. type of attitude (from a set of types or a simple weighted polarity pos/neg)
+4. Text containing the attitude. Sentence or entire document.
+
+
+Simplest task: is the attitude positive or negative?
+Complex: Rank the attitude from 1 to 5.
+Advanced: Determine the above attributes
+
+
+------------------------------------------------------
+WEEK 3 
+SENTIMENT ANALYSIS
+Sentiment Analysis - a baseline algorithm
+
+Cornell - polarity data 2.0 movie reviews
+
+Sentiment tokenization issues
+	- html/xml markup
+	- twitter markup
+	- preserve capitalization for words in all caps
+	- phone numbers, dates
+	- emoticons (some regexes for this available!)
+
+Extracting features
+	- how to handle negation?
+	- all words or only adjectives?
+
+	Negation idea:
+		Add NOT_ to every word between negation and following punctuation
+		didn't like this movie, but I -> didn't NOT_like NOT_this NOT_movie but I
+
+		c[NB] = argmax P(c[j]) product of probabilities of words fitting the class
+
+we use laplace smoothing with naive bayes.
+
+binarized multinomial naive bayes
+for sentiment, word occurence may matter more than word frequency. e.g. the word fantastic
+
+Clip all word counts to 1
+
+going back to chinese/japanese counts. Seems to actually work better.
+
+Multivariate Bernoulli Naive Bayes is totally different. That one doesn't work well for sentiment tasks.
+
+Other possibility: log(freq(w))
+
+Cross validation:
+	- Break up data into 10 folds. Equal positive and negative inside each fold.
+
+What makes reviews hard to classify?
+	- Subtlety
+	- Thwarted expectations and ordering effects. "I expected the movie to be good, but it wasn't."
+
+
+------------------------------------------------------
+WEEK 3 
+SENTIMENT ANALYSIS
+Sentiment Lexicons
+watched 4/5/12
+
+The General Inquirer
+	- lists of positive and negative words
+
+Linguistic Inquiry and Word Count
+	- Pennebaker
+	- $30-$60
+
+MPQA Subjectivity Cues Lexicon
+	- 6k words, positive, negative
+
+SentiWordNet
+	- synset for wordnet labeled for polarity
+	Positive, Negative, Objective
+
+Disagreements between polarity lexicons
+	- 2-3% disagreement between words that are in multiple sets
+
+IMDB reviews: Christopher Potts
+	- can't just use raw counts of words in different sentiment classes. "bad" occurs more in 10 star reviews than 2 star reviews
+	- reviews tend to skew positive
+	- use the likelihood, divide by the number of words in the class instead
+	- Some charts for words and the review scores they occur in are pretty straightforwared
+	- negation occurs more in low-star reviews
+
+http://sentiment.christopherpotts.net/code-data/happyfuntokenizing.py
+
+------------------------------------------------------
+WEEK 3 
+SENTIMENT ANALYSIS
+Learning Sentiment Lexicons
+
+Hatz. & McKeown
+Adjectives conjoined by 'and' have same polarity
+Adjectives conjoined by 'but' do not.
+
+- search on google for "was nice and" to see what's similar to nice in sentiment
+
+- make "polarity similarity" grpaph with 'and' and 'but'
+
+Turney Algorithm
+Extract a phrasal lexicon from reviews
+Extract two word phrases with adjectives
+JJ = adjective NN = noun NNS=plural noun
+
+How to measure polarity of a phrase
+- Positive phrases co-occur more with "excellent"
+- Negative co-occur with "poor"
+
+Pointwise Mutual Information
+- mutual information between random vars x and y
+
+- How much more do events x and y co-occur than if they were independent?
+
+Query search engine (Altavista)
+	- P(word) estimated by hits(word) / N
+	- P(word[1], word[2]) by hits(word1 near word2)/n^2
+
+
+PMI(word1,word2) = log2(hits(word1 near word2) / hits(word1)*hits(word2))
+
+- You can use WordNet to build polarity sets too. 
+
+
+------------------------------------------------------
+WEEK 3 
+SENTIMENT ANALYSIS
+Other Sentiment Tasks
+
+Finding sentiment of a sentence
+	- microsentiment: "the food was great but the service was awful"
+
+
+Finding the aspect/attribute/target of sentiment
+Frequent phrases+rules
+	- find all highly frequent phrases across reviews
+	- Filter by rules like "occurs right after sentiment word"
+	- Blair-Goldensohn
+
+- Aspect name may not be in the sentence. For restaurants'hotels, aspects are well-understood, so we can hand-label it. 
+
+Putting it all together:
+	Text extractor -> Sentiment classifier -> Aspect extractor -> Aggregator
+
+
+Baseline methods assume classes have equal frequencies
+	- If they're not balanced (in the real world), we should use the F score.
+	- Severe imbalanciung also can degrade classifier performance
+	- Two common solutions:
+		- resample in training
+		- cost-sensitive learning
+			- penalize SVM more for misclassification of the rarer class
+
+
+How to deal with 7 stars?
+	- map to binary
+	- use linear or ordinal regression
+
+
+- Sentiment is just one type of affective state. There's some other:
+	- detecting annoyance
+	- finding traumatized or depressed writers
+	- detection of flirtation or friendliness in conversations
+	- detection of extroverts
+
+- "detection of friendliness"
+	- collaborative conversational style
+	- laughing, more agreement, less hedges ('kind of', "sort of")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
