@@ -1198,11 +1198,80 @@ How to deal with 7 stars?
 	- collaborative conversational style
 	- laughing, more agreement, less hedges ('kind of', "sort of")
 
+------------------------------------------------------
+WEEK 4
+DISCRIMINATIVE CLASSIFIERS: MAXIMUM ENTROPY CLASSIFIERS
+Generative vs Discriminative Models
 
+Advantages of discriminative models:
+	- high accuracy
+	- Make it easy to incorporate lots of linguistically important features
+	- Can make language-indepdent NLP systems
 
+- We have some data {(d,c)} of paired observations d and hidden classes c.
 
+- Joint (generative) models place probabilities over both observed data and the hidden stuff.
+	- n-gram models, naive bayes, hidden markov, probabilistic context-free grammar, ibm machine translation
 
+- Discriminative (conditional) models take the data as given and put a probability over hidden structure give nthe data.
+	- logistic regression, conditional loglinear, or maximum entropy models, perceptron
 
+- Diagrams
+	- Circles for random variables and lines for direct dependencies. Naive bayes has d's pointing away from class c. logistic regression has arrows pointing towards class. 
+
+- Joint models give probabilities and tries to maximized joint likelihood. (that must be why the bayes stuff has you multiply in the prior) P(data, class)
+
+- Conditional models model conditional probability of the class itself. P(class|data) Conditional models seek to maximize these conditional probabilities.
+
+- Klein and Manning experiment comparing joint vs conditional. 
+
+- Conditional models are very prone to overfitting.
+
+------------------------------------------------------
+WEEK 4
+DISCRIMINATIVE CLASSIFIERS: MAXIMUM ENTROPY CLASSIFIERS
+Making features from text
+
+Features are elementary pieces of evidence that link between what we observe (d) and the category (c) that we want to predict. A feature is a function with a bounded real value.
+
+Examples:
+- f[1](c,d) = [c = LOCATION ^ w[-1] = "in" ^ isCapitalized(w)]
+- f[2](c,d) = [C = LOCATION ^ hasAccentedLatinChar(w)]
+- f[3](c,d) = [C = DRUG ^ ends(w,"c")]
+
+"in arcadia"
+"in québec"
+"taking zantac"
+
+the first two are f1, second is f2 and f1, third is just f3
+
+- Models will assign a weight to each feature.
+	- pos weight shows that the configuration is likely correct, negative likely incorrect.
+
+- Feature expectations
+	- two expectations:
+		- empirical count (expectation) of a feature
+		- model expectation of a feature
+
+In NLP uses, usually a feature specifies:
+	1. an indicator function - a yes/no booleanean matching
+	2. a particular class 
+
+(matching function) ^ c = cj (a class is matched)
+
+- Each feature picks out a data subset and suggests a label for it.
+
+Text categorization, Zhang and Oles 2001
+	- features are the prescene of each word in a document and the document class. they don't use every word, just reliable indicator words.
+	- Linear regression better than naive bayes. similar to logistic regression and support vector machine
+
+	- regularization/smoothing important for successful use of discriminative models
+
+- Other Maxent Classifier Uses:
+	- Sentence boundary detection. Is a period the end of a sentence or an abbreviation?
+	- Sentiment analysis (use as features word unigrams, bigrams, pos counts)
+	- prepositional phrase attachment - what noun/verb is a phrase modifying?
+	- parsing decisions in general
 
 
 
