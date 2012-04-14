@@ -1273,6 +1273,135 @@ Text categorization, Zhang and Oles 2001
 	- prepositional phrase attachment - what noun/verb is a phrase modifying?
 	- parsing decisions in general
 
+------------------------------------------------------
+WEEK 4
+DISCRIMINATIVE CLASSIFIERS: MAXIMUM ENTROPY CLASSIFIERS
+Feature-Based Linear Classifiers
+
+Linear classifiers at classification time:
+	- linear function from feature sets to classes
+	- assign a weight lambda to each feature
+	- we consider each class for an observed datum d
+	- for a pair (c,d) features vote with their weights:
+
+How to choose weights for features:
+	- perceptron - find a currently misclassified example, nudge weights in the diirection of its correct classification
+	- margin-based methods (support vector machines)
+	- exponential (log-linear, maxent, logistic, gibbs) models
+
+
+
+	exp sigma(i) l[i]f[i](c,d)
+	-------------------------
+	sigma(c) exp sigma(i) l[i]f[i](c,d)
+	
+	calculating P(location | "in québec")
+
+	We choose parameters (lambda weights) that maximize the conditional likihood of the data according to this model.
+
+
+Aside: logistic regressions
+	- maxent models in nlp are essentially the same as multiclass logistic regression models in stats.
+	
+
+
+
+------------------------------------------------------
+WEEK 4
+DISCRIMINATIVE CLASSIFIERS: MAXIMUM ENTROPY CLASSIFIERS
+Building a Maxent Model: The Nuts and Bolts
+
+- Define features (indicator functions) over data points
+- Features represent sets of data points which are distinctiv enough to deserve model parameters.
+	- words by also "word countains number", "word ends with ing", etc
+- Encode each ø feature as a unique string
+	- a dataum will give rise to a set of strings, the active ø features
+	- each feature gets a real number weight
+
+
+- Features are often added during model development to target errors. Often the easiest thing to think of are features that mark bad combinations. You look for errors in your existing model and you find features that can be trained against them.
+
+- Then for any given feature weights, we want to be able to calculate:
+	- data conditional likelihood
+	- derivative of the likelihood wrt each feature weight
+		- uses expectations of each feature according to the model
+	- we can then find the optimum feature weights
+
+------------------------------------------------------
+WEEK 4
+DISCRIMINATIVE CLASSIFIERS: MAXIMUM ENTROPY CLASSIFIERS
+Generative vs Discriminative models: the problem of overcounting evidence
+
+Text classification: asia or europe
+Three words: Monaco, Kong, Kong
+
+Comparing NB model to joint model. The problem with NB in the Hong Kong example is that Hong and Kong are separate words that have nothing to do with each other. This is a problem.
+
+Naive Bayes models multi-count correlated evidence. Maximum entropy models pretty much solve this problem.
+
+------------------------------------------------------
+WEEK 4
+DISCRIMINATIVE CLASSIFIERS: MAXIMUM ENTROPY CLASSIFIER
+Maximizing the likilihood
+
+
+
+------------------------------------------------------
+WEEK 4
+NAMED ENTITY RECOGNITION AND MAXIMUM ENTROPY SEQUENCE MODELS
+Introduction to Information Extraction
+
+
+
+------------------------------------------------------
+WEEK 4
+NAMED ENTITY RECOGNITION AND MAXIMUM ENTROPY SEQUENCE MODELS
+Evaluation of Named Entity Recognition
+
+
+
+
+------------------------------------------------------
+WEEK 4
+NAMED ENTITY RECOGNITION AND MAXIMUM ENTROPY SEQUENCE MODELS
+Sequence Models for Named Entity Recognition
+
+
+
+
+------------------------------------------------------
+WEEK 4
+NAMED ENTITY RECOGNITION AND MAXIMUM ENTROPY SEQUENCE MODELS
+Maximum Entropy Sequence Models
+
+
+
+------------------------------------------------------
+WEEK 4
+RELATION EXTRACTION
+What is relation extraction?
+
+
+------------------------------------------------------
+WEEK 4
+RELATION EXTRACTION
+Using Patterns to Extract Relations
+
+
+------------------------------------------------------
+WEEK 4
+RELATION EXTRACTION
+Supervised Relation Extraction
+
+
+------------------------------------------------------
+WEEK 4
+RELATION EXTRACTION
+Semi-Supervised and Unsupervized Relation Extraction
+
+
+
+
 
 
 
